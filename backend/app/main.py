@@ -3,12 +3,14 @@ from sqlalchemy import text
 
 from app.db.database import engine
 from app.routes.auth import router as auth_router
+from app.routes.fact_checks import router as fact_checks_router
 
 
 app = FastAPI(title="FactCheck AI")
 
 
 app.include_router(auth_router)
+app.include_router(fact_checks_router)
 
 
 @app.get("/")

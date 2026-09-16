@@ -68,11 +68,11 @@ async def login(
     "token_type": "bearer",
   }
 
-# @router.get("/users")
-# async def get_users(db: AsyncSession = Depends(get_db)):
-#   result = await db.execute(select(User))
-#   users = result.scalars().all()
-#   return users
+@router.get("/users")
+async def get_users(db: AsyncSession = Depends(get_db)):
+  result = await db.execute(select(User))
+  users = result.scalars().all()
+  return users
 
 @router.get("/me")
 async def get_me(

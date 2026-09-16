@@ -1,12 +1,8 @@
-from typing import TYPE_CHECKING
-
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-
-if TYPE_CHECKING:
-  from app.models.fact_check import FactCheck
+# from app.models.fact_check import FactCheck
 
 
 class Source(Base):
