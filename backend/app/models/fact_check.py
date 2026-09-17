@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -7,6 +8,9 @@ from app.db.base import Base
 # from app.models.source import Source
 # from app.models.user import User
 
+if TYPE_CHECKING:
+  from app.models.source import Source
+  from app.models.user import User
 
 class FactCheck(Base):
   __tablename__ = "fact_checks"
