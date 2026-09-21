@@ -1,6 +1,7 @@
 from app.ai.llm import llm
 from app.ai.schemas import ClaimAnalysis
 from app.ai.state import FactCheckState
+from app.ai.search import search_tool
 
 
 structured_llm = llm.with_structured_output(ClaimAnalysis)
@@ -27,4 +28,17 @@ Prefer queries that can find reliable, authoritative evidence.
   return {
     **state,
     "search_queries": result.search_queries,
+  }
+
+def search_web(state: FactCheckState) -> FactCheckState:
+  all_sources = []
+
+  for query in state["search_queries"]:
+    result = search_tool.invoke(query)
+
+    all_sources.extend(result["results"])
+
+  return {
+    **state,
+    "sources": all_sources,
   }
