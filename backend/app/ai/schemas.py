@@ -5,3 +5,37 @@ class ClaimAnalysis(BaseModel):
   search_queries: list[str] = Field(
     description="Search queries that can be used to find reliable evidence for the claim."
   )
+
+class EvidenceItem(BaseModel):
+  source_url: str = Field(
+    description="URL of the source containing the evidence."
+  )
+
+  evidence: str = Field(  
+    description="The specific evidence from the source that is relevant to the claim."
+  )
+
+  relationship: str = Field(
+    description=(
+      "Relationship of the evidence to the claim. "
+      "Must be one of: supports, contradicts, or insufficient."
+    )
+  )
+
+
+class EvidenceExtraction(BaseModel):
+  evidence: list[EvidenceItem] = Field(
+    description="Relevant evidence extracted from the provided sources."
+  )
+
+class VerdictResult(BaseModel):
+  verdict: str = Field(
+    description=(
+      "Final verdict for the claim. "
+      "Must be one of: true, false, partially_true, or insufficient_evidence."
+    )
+  )
+
+  explanation: str = Field(
+    description="A clear explanation of the verdict based only on the provided evidence."
+  )
