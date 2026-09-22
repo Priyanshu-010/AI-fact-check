@@ -8,3 +8,4 @@ class FactCheckState(TypedDict):
   evidence: list[dict]
   verdict: str | None
   explanation: str | None
+  search_round: int

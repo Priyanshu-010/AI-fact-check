@@ -12,6 +12,7 @@ structured_llm = llm.with_structured_output(ClaimAnalysis)
 evidence_llm = llm.with_structured_output(EvidenceExtraction)
 verdict_llm = llm.with_structured_output(VerdictResult)
 
+# Analyzing claim and generating search queries Node
 
 def analyze_claim(state: FactCheckState) -> FactCheckState:
   claim = state["claim"]
@@ -36,6 +37,8 @@ Prefer queries that can find reliable, authoritative evidence.
     "search_queries": result.search_queries,
   }
 
+# Search web Node (Tavily)
+
 def search_web(state: FactCheckState) -> FactCheckState:
   all_sources = []
 
@@ -47,7 +50,55 @@ def search_web(state: FactCheckState) -> FactCheckState:
   return {
     **state,
     "sources": all_sources,
+    "search_round": state["search_round"] + 1,
   }
+
+# Extracting evidence Node and based on that deciding should search again or not
+
+def should_search_again(state: FactCheckState) -> str:
+  if len(state["evidence"]) == 0 and state["search_round"] < 2:
+    return "search_again"
+
+  return "evaluate"
+
+# If searching again refine search queries Node
+
+def refine_search_queries(state: FactCheckState) -> FactCheckState:
+  claim = state["claim"]
+  evidence = state["evidence"]
+
+  prompt = f"""
+You are helping an AI fact-checking system find additional evidence.
+
+Claim:
+{claim}
+
+Evidence found so far:
+{evidence}
+
+The current evidence is not sufficient to confidently evaluate the claim.
+
+Generate 3 new, focused web search queries that could find
+additional reliable evidence.
+
+Avoid repeating the existing searches.
+Prefer authoritative sources such as:
+- universities
+- government organizations
+- scientific organizations
+- established research institutions
+
+Return only useful search queries.
+"""
+
+  result = structured_llm.invoke(prompt)
+
+  return {
+    **state,
+    "search_queries": result.search_queries,
+  }
+
+# Extracting evidence Node from those searches/sources
 
 def extract_evidence(state: FactCheckState) -> FactCheckState:
   claim = state["claim"]
@@ -87,6 +138,8 @@ Only include evidence that is relevant to evaluating the claim.
       for item in result.evidence
     ],
   }
+
+# Evaluating evidence Node
 
 def evaluate_evidence(state: FactCheckState) -> FactCheckState:
   claim = state["claim"]

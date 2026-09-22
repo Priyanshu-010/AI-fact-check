@@ -8,6 +8,7 @@ initial_state = {
   "evidence": [],
   "verdict": None,
   "explanation": None,
+  "search_round": 0,
 }
 
 
