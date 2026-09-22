@@ -1,8 +1,9 @@
 from app.ai.llm import llm
 from app.ai.schemas import (
-    ClaimAnalysis,
-    EvidenceExtraction,
-    VerdictResult,
+  ClaimAnalysis,
+  EvidenceExtraction,
+  EvidenceSufficiency,
+  VerdictResult,
 )
 from app.ai.state import FactCheckState
 from app.ai.search import search_tool
@@ -11,6 +12,7 @@ from app.ai.search import search_tool
 structured_llm = llm.with_structured_output(ClaimAnalysis)
 evidence_llm = llm.with_structured_output(EvidenceExtraction)
 verdict_llm = llm.with_structured_output(VerdictResult)
+sufficiency_llm = llm.with_structured_output(EvidenceSufficiency)
 
 # Analyzing claim and generating search queries Node
 
@@ -56,10 +58,63 @@ def search_web(state: FactCheckState) -> FactCheckState:
 # Extracting evidence Node and based on that deciding should search again or not
 
 def should_search_again(state: FactCheckState) -> str:
-  if len(state["evidence"]) == 0 and state["search_round"] < 2:
+
+  if (
+    not state["evidence_sufficient"]
+    and state["search_round"] < 2
+  ):
     return "search_again"
 
   return "evaluate"
+
+# Check evidence sufficiency Node
+
+def check_evidence_sufficiency(
+    state: FactCheckState,
+) -> FactCheckState:
+
+  claim = state["claim"]
+  evidence = state["evidence"]
+
+  prompt = f"""
+You are evaluating whether the evidence collected by an AI
+fact-checking system is sufficient to determine the truth of a claim.
+
+Claim:
+{claim}
+
+Evidence:
+{evidence}
+
+Determine whether the evidence is sufficient.
+
+Consider:
+
+1. Does the evidence directly address the claim?
+2. Is there enough relevant evidence to make a reasonable determination?
+3. Are there multiple pieces of evidence or independent sources?
+4. Is the evidence consistent, or is there significant conflict?
+5. Would another search likely provide important missing information?
+
+Set sufficient to true only when the available evidence is
+strong enough to proceed to the final verdict.
+
+Set sufficient to false when important evidence is missing,
+the evidence is weak, or significant uncertainty remains.
+
+Do not determine the final truth of the claim here.
+Only determine whether the evidence is sufficient for evaluation.
+
+Explain your decision briefly.
+"""
+
+  result = sufficiency_llm.invoke(prompt)
+
+  return {
+    **state,
+    "evidence_sufficient": result.sufficient,
+    "evidence_sufficiency_reason": result.reason,
+  }
 
 # If searching again refine search queries Node
 

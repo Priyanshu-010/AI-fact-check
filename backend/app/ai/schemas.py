@@ -39,3 +39,17 @@ class VerdictResult(BaseModel):
   explanation: str = Field(
     description="A clear explanation of the verdict based only on the provided evidence."
   )
+
+class EvidenceSufficiency(BaseModel):
+  sufficient: bool = Field(
+    description=(
+      "Whether the available evidence is sufficient to make "
+      "a reliable fact-checking decision."
+    )
+  )
+
+  reason: str = Field(
+    description=(
+      "Brief explanation of why the evidence is or is not sufficient."
+    )
+  )

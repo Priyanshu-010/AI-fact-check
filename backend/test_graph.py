@@ -9,6 +9,8 @@ initial_state = {
   "verdict": None,
   "explanation": None,
   "search_round": 0,
+  "evidence_sufficient": False,
+  "evidence_sufficiency_reason": None,
 }
 
 
