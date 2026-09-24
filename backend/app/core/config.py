@@ -8,6 +8,7 @@ class Settings(BaseSettings):
   access_token_expire_minutes: int = 30
   gemini_api_key: str
   tavily_api_key: str
+  groq_api_key: str
 
   model_config = SettingsConfigDict(
     env_file=".env",
