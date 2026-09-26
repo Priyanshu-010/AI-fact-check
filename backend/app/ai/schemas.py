@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class ClaimAnalysis(BaseModel):
@@ -11,15 +12,16 @@ class EvidenceItem(BaseModel):
     description="URL of the source containing the evidence."
   )
 
-  evidence: str = Field(  
+  evidence: str = Field(
     description="The specific evidence from the source that is relevant to the claim."
   )
 
-  relationship: str = Field(
-    description=(
-      "Relationship of the evidence to the claim. "
-      "Must be one of: supports, contradicts, or insufficient."
-    )
+  relationship: Literal[
+    "supports",
+    "contradicts",
+    "insufficient",
+  ] = Field(
+    description="Relationship of the evidence to the claim."
   )
 
 
@@ -29,11 +31,13 @@ class EvidenceExtraction(BaseModel):
   )
 
 class VerdictResult(BaseModel):
-  verdict: str = Field(
-    description=(
-      "Final verdict for the claim. "
-      "Must be one of: true, false, partially_true, or insufficient_evidence."
-    )
+  verdict: Literal[
+    "true",
+    "false",
+    "partially_true",
+    "insufficient_evidence",
+  ] = Field(
+    description="Final verdict for the claim."
   )
 
   explanation: str = Field(

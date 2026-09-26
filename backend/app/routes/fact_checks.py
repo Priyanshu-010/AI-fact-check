@@ -65,3 +65,27 @@ async def create_fact_check(
   fact_check = result.scalar_one()
 
   return fact_check
+
+# Get Fact Checks Endpoint
+from sqlalchemy.orm import selectinload  # <-- Add this import
+
+# Get Fact Checks Endpoint
+@router.get(
+  "",
+  response_model=list[FactCheckResponse],
+)
+async def get_fact_checks(
+  user_id: int = Depends(get_current_user_id),
+  db: AsyncSession = Depends(get_db),
+):
+  result = await db.execute(
+    select(FactCheck)
+    .where(FactCheck.user_id == user_id)
+    # Tell SQLAlchemy to fetch the related sources in the same execution block
+    .options(selectinload(FactCheck.sources)) 
+    .order_by(FactCheck.created_at.desc())
+  )
+
+  fact_checks = result.scalars().all()
+
+  return fact_checks
