@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.api.dependencies import get_current_user_id
 from app.db.database import get_db
@@ -53,6 +55,13 @@ async def create_fact_check(
     db.add(source_record)
 
   await db.commit()
-  await db.refresh(fact_check)
+
+  result = await db.execute(
+    select(FactCheck)
+    .options(selectinload(FactCheck.sources))
+    .where(FactCheck.id == fact_check.id)
+  )
+
+  fact_check = result.scalar_one()
 
   return fact_check
