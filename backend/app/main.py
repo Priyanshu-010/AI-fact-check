@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from sqlalchemy import text
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.database import engine
 from app.routes.auth import router as auth_router
@@ -8,6 +9,13 @@ from app.routes.fact_checks import router as fact_checks_router
 
 app = FastAPI(title="FactCheck AI")
 
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["http://localhost:3000"], # Front-end URL
+  allow_credentials=False, # Cookie Authentication
+  allow_methods=["*"], # Get, Post, Put, Delete
+  allow_headers=["*"], # Headers
+)
 
 app.include_router(auth_router)
 app.include_router(fact_checks_router)
