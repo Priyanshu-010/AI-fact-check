@@ -35,12 +35,21 @@ export default function Home() {
     setResult(null);
 
     try {
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        setError("Please log in first.");
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(
         "http://127.0.0.1:8000/fact-checks",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             claim: claim,
