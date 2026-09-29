@@ -61,6 +61,48 @@ export default function HistoryPage() {
     loadHistory();
   }, []);
 
+  async function handleDelete(factCheckId: number) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this fact check?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      setError("Please log in first.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/fact-checks/${factCheckId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete fact check.");
+      }
+
+      setFactChecks((current) =>
+        current.filter(
+          (factCheck) => factCheck.id !== factCheckId
+        )
+      );
+    } catch (err) {
+      setError("Could not delete the fact check.");
+      console.log(err)
+    }
+  } 
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-50 px-4 py-12">
@@ -114,7 +156,14 @@ export default function HistoryPage() {
                   factCheck.created_at
                 ).toLocaleString()}
               </p>
-
+              
+              <button
+                type="button"
+                onClick={() => handleDelete(factCheck.id)}
+                className="mt-4 rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+              >
+                Delete
+              </button>
               <h3 className="mt-6 font-semibold">
                 Sources
               </h3>

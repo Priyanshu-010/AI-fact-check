@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -89,3 +89,32 @@ async def get_fact_checks(
   fact_checks = result.scalars().all()
 
   return fact_checks
+
+
+@router.delete("/{fact_check_id}")
+async def delete_fact_check(
+  fact_check_id: int,
+  user_id: int = Depends(get_current_user_id),
+  db: AsyncSession = Depends(get_db),
+):
+  result = await db.execute(
+    select(FactCheck).where(
+      FactCheck.id == fact_check_id,
+      FactCheck.user_id == user_id,
+    )
+  )
+
+  fact_check = result.scalar_one_or_none()
+
+  if fact_check is None:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="Fact check not found",
+    )
+
+  await db.delete(fact_check)
+  await db.commit()
+
+  return {
+    "message": "Fact check deleted successfully"
+  }
