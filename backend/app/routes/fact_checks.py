@@ -30,6 +30,11 @@ async def create_fact_check(
   # Run the AI fact-checking pipeline
   result = await fact_check_claim(data.claim)
 
+  evidence_by_url = {
+    item["source_url"]: item
+    for item in result.get("evidence", [])
+  }
+
   # Create the fact-check record
   fact_check = FactCheck(
     user_id=user_id,
@@ -45,14 +50,26 @@ async def create_fact_check(
 
   # Save the sources used by the AI
   for source in result["sources"]:
-    source_record = Source(
-      fact_check_id=fact_check.id,
-      title=source.get("title"),
-      url=source["url"],
-      snippet=source.get("content"),
-    )
+    evidence_item = evidence_by_url.get(source["url"])
 
-    db.add(source_record)
+    db.add(
+      Source(
+        fact_check_id=fact_check.id,
+        title=source.get("title"),
+        url=source["url"],
+        snippet=source.get("content"),
+        evidence=(
+          evidence_item.get("evidence")
+          if evidence_item
+          else None
+        ),
+        source_relationship=(
+          evidence_item.get("relationship")
+          if evidence_item
+          else None
+        ),
+      )
+    )
 
   await db.commit()
 

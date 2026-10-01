@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-# from app.models.fact_check import FactCheck
+
 if TYPE_CHECKING:
   from app.models.fact_check import FactCheck
 
@@ -32,6 +32,16 @@ class Source(Base):
 
   snippet: Mapped[str | None] = mapped_column(
     Text,
+    nullable=True,
+  )
+
+  evidence: Mapped[str | None] = mapped_column(
+    Text,
+    nullable=True,
+  )
+
+  source_relationship: Mapped[str | None] = mapped_column(
+    String(50),
     nullable=True,
   )
 

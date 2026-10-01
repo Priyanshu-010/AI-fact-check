@@ -11,11 +11,12 @@ class SourceResponse(BaseModel):
   title: str | None
   url: str
   snippet: str | None
+  evidence: str | None
+  source_relationship: str | None
 
   model_config = {
     "from_attributes": True
   }
-
 class FactCheckResponse(BaseModel):
   id: int
   claim: str
