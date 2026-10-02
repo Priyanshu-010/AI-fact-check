@@ -21,16 +21,13 @@ export default function LoginPage() {
       formData.append("username", email);
       formData.append("password", password);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: formData.toString(),
-        }
-      );
+      const response = await fetch("http://127.0.0.1:8000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: formData.toString(),
+      });
 
       if (!response.ok) {
         throw new Error("Invalid email or password.");
@@ -43,73 +40,104 @@ export default function LoginPage() {
       router.push("/");
     } catch (error) {
       setError("Invalid email or password.");
-      console.log(error)
+      console.log(error);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-md">
-        <h1 className="text-3xl font-bold text-center">
-          Login
-        </h1>
-
-        <p className="mt-2 text-center text-gray-600">
-          Login to use FactCheck AI.
-        </p>
-
-        <div className="mt-8 space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-black"
-            />
+    <main className="flex min-h-screen items-center justify-center bg-zinc-950 px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Brand */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white text-lg font-black text-black">
+            F
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
+          <h1 className="mt-5 text-2xl font-bold tracking-tight">
+            Welcome back
+          </h1>
 
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-2 w-full rounded-lg border border-gray-300 p-3 outline-none focus:border-black"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full rounded-lg bg-black px-4 py-3 font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-
-          {error && (
-            <p className="text-sm text-red-600">
-              {error}
-            </p>
-          )}
+          <p className="mt-2 text-sm text-zinc-500">
+            Sign in to continue to FactCheck AI.
+          </p>
         </div>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 shadow-2xl shadow-black/20 sm:p-8">
+          <div className="space-y-5">
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-zinc-300"
+              >
+                Email
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 transition focus:border-zinc-600 focus:ring-2 focus:ring-zinc-800"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-zinc-300"
+              >
+                Password
+              </label>
+
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    handleLogin();
+                  }
+                }}
+                className="mt-2 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-700 transition focus:border-zinc-600 focus:ring-2 focus:ring-zinc-800"
+              />
+            </div>
+
+            {/* Error */}
+            {error && (
+              <div className="rounded-xl border border-red-900/50 bg-red-950/30 p-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+
+            {/* Button */}
+            <button
+              type="button"
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full rounded-xl bg-white px-4 py-3 font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+          </div>
+
+          <div className="mt-6 border-t border-zinc-800 pt-6 text-center">
+            <p className="text-xs leading-5 text-zinc-600">
+              Your account gives you access to your personal fact-check history.
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-zinc-700">
+          FactCheck AI · AI-powered evidence research
+        </p>
       </div>
     </main>
   );

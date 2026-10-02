@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Source = {
   id: number;
   title: string | null;
   url: string;
   snippet: string | null;
+  evidence: string | null;
+  source_relationship: string | null;
 };
 
 type FactCheck = {
@@ -18,6 +21,61 @@ type FactCheck = {
   created_at: string;
   sources: Source[];
 };
+
+function getVerdictStyle(verdict: string | null) {
+  switch (verdict) {
+    case "true":
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+
+    case "false":
+      return "border-red-500/30 bg-red-500/10 text-red-400";
+
+    case "partially_true":
+      return "border-amber-500/30 bg-amber-500/10 text-amber-400";
+
+    case "insufficient_evidence":
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
+
+    default:
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
+  }
+}
+
+function formatVerdict(verdict: string | null) {
+  if (!verdict) {
+    return "Unknown";
+  }
+
+  return verdict
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function getRelationshipStyle(relationship: string | null) {
+  switch (relationship) {
+    case "supports":
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
+
+    case "contradicts":
+      return "border-red-500/30 bg-red-500/10 text-red-400";
+
+    case "insufficient":
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
+
+    default:
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
+  }
+}
+
+function formatRelationship(relationship: string | null) {
+  if (!relationship) {
+    return "Unknown";
+  }
+
+  return relationship
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 
 export default function HistoryPage() {
   const [factChecks, setFactChecks] = useState<FactCheck[]>([]);
@@ -129,67 +187,171 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="text-4xl font-bold">Fact Check History</h1>
+    <main className="min-h-[calc(100vh-4rem)] px-4 py-12 sm:px-6 lg:py-16">
+      <div className="mx-auto max-w-5xl">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              Your activity
+            </p>
 
-        {error && <p className="mt-6 text-red-600">{error}</p>}
+            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+              Fact Check History
+            </h1>
 
-        {!error && factChecks.length === 0 && (
-          <p className="mt-6 text-gray-600">
-            You have not checked any claims yet.
-          </p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
+              Review the claims you have previously investigated and the
+              evidence found during each fact-check.
+            </p>
+          </div>
+
+          <div className="shrink-0 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3">
+            <p className="text-xs text-zinc-500">Total checks</p>
+
+            <p className="mt-1 text-xl font-bold">{factChecks.length}</p>
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mt-8 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">
+            {error}
+          </div>
         )}
 
-        <div className="mt-8 space-y-6">
-          {factChecks.map((factCheck) => (
-            <div
-              key={factCheck.id}
-              className="rounded-2xl bg-white p-6 shadow-md"
+        {/* Empty state */}
+        {!error && factChecks.length === 0 && (
+          <div className="mt-10 rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/40 px-6 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900 text-xl">
+              +
+            </div>
+
+            <h2 className="mt-5 text-lg font-semibold">No fact checks yet</h2>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-zinc-500">
+              Start by submitting a claim and your completed fact checks will
+              appear here.
+            </p>
+
+            <Link
+              href="/"
+              className="mt-6 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-zinc-200"
             >
-              <p className="text-lg font-semibold">{factCheck.claim}</p>
+              Check a claim
+            </Link>
+          </div>
+        )}
 
-              <p className="mt-3">
-                <strong>Verdict:</strong> {factCheck.verdict}
-              </p>
-
-              <p className="mt-3 text-gray-700">{factCheck.explanation}</p>
-
-              <p className="mt-4 text-sm text-gray-500">
-                {new Date(factCheck.created_at).toLocaleString()}
-              </p>
-
-              <button
-                type="button"
-                onClick={() => handleDelete(factCheck.id)}
-                className="mt-4 rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-              >
-                Delete
-              </button>
-              <h3 className="mt-6 font-semibold">Sources</h3>
-
-              <div className="mt-3 space-y-3">
-                {factCheck.sources.map((source) => (
-                  <a
-                    key={source.id}
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block rounded-lg border border-gray-200 p-3 hover:bg-gray-50"
-                  >
-                    <p className="font-medium underline">
-                      {source.title || source.url}
+        {/* History */}
+        <div className="mt-8 space-y-4">
+          {factChecks.map((factCheck) => (
+            <article
+              key={factCheck.id}
+              className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70"
+            >
+              {/* Main content */}
+              <div className="p-6">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
+                      Claim
                     </p>
 
-                    {source.snippet && (
-                      <p className="mt-1 text-sm text-gray-600">
-                        {source.snippet}
-                      </p>
-                    )}
-                  </a>
-                ))}
+                    <h2 className="mt-2 text-lg font-semibold leading-7 text-white">
+                      {factCheck.claim}
+                    </h2>
+                  </div>
+
+                  <span
+                    className={`shrink-0 self-start rounded-full border px-3 py-1.5 text-xs font-bold ${getVerdictStyle(
+                      factCheck.verdict,
+                    )}`}
+                  >
+                    {formatVerdict(factCheck.verdict)}
+                  </span>
+                </div>
+
+                {factCheck.explanation && (
+                  <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
+                      Explanation
+                    </p>
+
+                    <p className="mt-2 text-sm leading-6 text-zinc-400">
+                      {factCheck.explanation}
+                    </p>
+                  </div>
+                )}
+
+                {/* Sources */}
+                {factCheck.sources.length > 0 && (
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-zinc-300">
+                        Evidence & Sources
+                      </h3>
+
+                      <span className="text-xs text-zinc-600">
+                        {factCheck.sources.length} sources
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                      {factCheck.sources.map((source) => (
+                        <a
+                          key={source.id}
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group rounded-xl border border-zinc-800 bg-zinc-950/50 p-4 transition hover:border-zinc-700 hover:bg-zinc-900"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="line-clamp-2 text-sm font-medium text-zinc-300 group-hover:text-white">
+                              {source.title || "Untitled source"}
+                            </p>
+
+                            <span className="shrink-0 text-zinc-600 group-hover:text-white">
+                              ↗
+                            </span>
+                          </div>
+
+                          {source.source_relationship && (
+                            <span
+                              className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] font-medium ${getRelationshipStyle(
+                                source.source_relationship,
+                              )}`}
+                            >
+                              {formatRelationship(source.source_relationship)}
+                            </span>
+                          )}
+
+                          {source.evidence && (
+                            <p className="mt-3 line-clamp-3 text-xs leading-5 text-zinc-500">
+                              {source.evidence}
+                            </p>
+                          )}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6 flex items-center justify-between border-t border-zinc-800 pt-4">
+                  <p className="text-xs text-zinc-600">
+                    {new Date(factCheck.created_at).toLocaleString()}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(factCheck.id)}
+                    className="rounded-lg border border-zinc-800 px-3 py-2 text-xs font-medium text-zinc-500 transition hover:border-red-900/70 hover:bg-red-950/30 hover:text-red-400"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";    
+import { useRouter } from "next/navigation";
 type Source = {
   id: number;
   title: string | null;
@@ -23,19 +23,19 @@ type FactCheckResult = {
 function getVerdictStyle(verdict: string | null) {
   switch (verdict) {
     case "true":
-      return "bg-green-100 text-green-700 border-green-200";
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
 
     case "false":
-      return "bg-red-100 text-red-700 border-red-200";
+      return "border-red-500/30 bg-red-500/10 text-red-400";
 
     case "partially_true":
-      return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      return "border-amber-500/30 bg-amber-500/10 text-amber-400";
 
     case "insufficient_evidence":
-      return "bg-gray-100 text-gray-700 border-gray-200";
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
 
     default:
-      return "bg-gray-100 text-gray-700 border-gray-200";
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
   }
 }
 
@@ -49,19 +49,21 @@ function formatVerdict(verdict: string | null) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function getRelationshipStyle(relationship: string | null) {
+function getRelationshipStyle(
+  relationship: string | null
+) {
   switch (relationship) {
     case "supports":
-      return "border-green-200 bg-green-50 text-green-700";
+      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
 
     case "contradicts":
-      return "border-red-200 bg-red-50 text-red-700";
+      return "border-red-500/30 bg-red-500/10 text-red-400";
 
     case "insufficient":
-      return "border-gray-200 bg-gray-50 text-gray-600";
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
 
     default:
-      return "border-gray-200 bg-gray-50 text-gray-600";
+      return "border-zinc-700 bg-zinc-800/50 text-zinc-400";
   }
 }
 
@@ -86,7 +88,7 @@ export default function Home() {
     const token = localStorage.getItem("access_token");
 
     if (!token) {
-      router.replace("/login"); 
+      router.replace("/login");
     }
   }, [router]);
 
@@ -141,159 +143,178 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-12">
-      <div className="mx-auto w-full max-w-4xl">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-5xl font-bold tracking-tight">FactCheck AI</h1>
+    <main className="min-h-[calc(100vh-4rem)] px-4 py-12 sm:px-6 lg:py-20">
+      <div className="mx-auto max-w-4xl">
+        {/* Hero */}
+        <section className="text-center">
+          <div className="mx-auto inline-flex items-center rounded-full border border-zinc-800 bg-zinc-900/70 px-3 py-1 text-xs font-medium text-zinc-400">
+            AI-powered fact verification
+          </div>
 
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-            Verify claims using AI-powered web research, evidence analysis, and
-            trusted sources.
+          <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
+            Find out what is
+            <span className="text-zinc-500"> actually true.</span>
+          </h1>
+
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-zinc-400 sm:text-lg">
+            Submit a claim and let AI research the web, analyze evidence, and
+            explain what the available evidence shows.
           </p>
-        </div>
+        </section>
 
         {/* Input */}
-        <div className="mt-10 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-          <label
-            htmlFor="claim"
-            className="block text-sm font-semibold text-gray-900"
-          >
-            What would you like to fact-check?
-          </label>
+        <section className="mt-10">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-2 shadow-2xl shadow-black/20">
+            <textarea
+              id="claim"
+              value={claim}
+              onChange={(event) => setClaim(event.target.value)}
+              placeholder="Enter a claim to fact-check..."
+              rows={5}
+              disabled={loading}
+              className="w-full resize-none rounded-xl bg-transparent px-4 py-4 text-base text-white outline-none placeholder:text-zinc-600 disabled:opacity-50"
+            />
 
-          <textarea
-            id="claim"
-            value={claim}
-            onChange={(event) => setClaim(event.target.value)}
-            placeholder="Example: The Earth is flat"
-            rows={5}
-            disabled={loading}
-            className="mt-3 w-full resize-none rounded-xl border border-gray-300 p-4 text-gray-900 outline-none transition focus:border-black focus:ring-2 focus:ring-gray-200 disabled:bg-gray-100"
-          />
+            <div className="flex items-center justify-between gap-4 border-t border-zinc-800 px-2 pt-2">
+              <span className="hidden text-xs text-zinc-600 sm:block">
+                AI will research multiple web sources
+              </span>
 
-          <button
-            type="button"
-            onClick={handleFactCheck}
-            disabled={loading}
-            className="mt-4 w-full rounded-xl bg-black px-5 py-3.5 font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? "Researching claim..." : "Fact Check"}
-          </button>
+              <button
+                type="button"
+                onClick={handleFactCheck}
+                disabled={loading}
+                className="ml-auto rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? "Researching..." : "Fact Check →"}
+              </button>
+            </div>
+          </div>
 
           {loading && (
-            <div className="mt-4 rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-600">
-              Searching the web and analyzing available evidence...
+            <div className="mt-4 flex items-center justify-center gap-3 text-sm text-zinc-500">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-700 border-t-white" />
+              Researching the claim and analyzing evidence...
             </div>
           )}
 
           {error && (
-            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="mt-4 rounded-xl border border-red-900/50 bg-red-950/30 p-4 text-sm text-red-400">
               {error}
             </div>
           )}
-        </div>
+        </section>
 
         {/* Result */}
         {result && (
-          <div className="mt-8 space-y-6">
+          <section className="mt-10 space-y-4">
             {/* Claim + Verdict */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-              <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
-                Claim
-              </p>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                    Claim
+                  </p>
 
-              <p className="mt-2 text-2xl font-semibold text-gray-900">
-                {result.claim}
-              </p>
+                  <h2 className="mt-2 text-xl font-semibold leading-8 text-white">
+                    {result.claim}
+                  </h2>
+                </div>
 
-              <div className="mt-6">
-                <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
-                  Verdict
-                </p>
+                <div className="shrink-0">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                    Verdict
+                  </p>
 
-                <span
-                  className={`mt-2 inline-flex rounded-full border px-4 py-2 text-sm font-bold ${getVerdictStyle(
-                    result.verdict,
-                  )}`}
-                >
-                  {formatVerdict(result.verdict)}
-                </span>
+                  <span
+                    className={`mt-2 inline-flex rounded-full border px-4 py-2 text-sm font-bold ${getVerdictStyle(
+                      result.verdict,
+                    )}`}
+                  >
+                    {formatVerdict(result.verdict)}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Explanation */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Explanation</h2>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
+              <h2 className="text-lg font-semibold">Explanation</h2>
 
-              <p className="mt-3 leading-7 text-gray-700">
+              <p className="mt-3 text-sm leading-7 text-zinc-400">
                 {result.explanation}
               </p>
             </div>
 
             {/* Sources */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Sources</h2>
+                <div>
+                  <h2 className="text-lg font-semibold">Evidence & Sources</h2>
 
-                <span className="text-sm text-gray-500">
-                  {result.sources.length} sources
+                  <p className="mt-1 text-sm text-zinc-500">
+                    Sources used during the fact-check
+                  </p>
+                </div>
+
+                <span className="rounded-full border border-zinc-800 bg-zinc-950 px-3 py-1 text-xs text-zinc-500">
+                  {result.sources.length}
                 </span>
               </div>
 
-              <div className="mt-5 space-y-4">
+              <div className="mt-6 space-y-3">
                 {result.sources.map((source) => (
                   <a
                     key={source.id}
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-xl border border-gray-200 p-4 transition hover:border-gray-400 hover:bg-gray-50"
+                    className="group block rounded-xl border border-zinc-800 bg-zinc-950/60 p-5 transition hover:border-zinc-700 hover:bg-zinc-900"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="font-semibold text-gray-900">
-                        {source.title || "Untitled source"}
-                      </h3>
+                      <div>
+                        <h3 className="font-medium text-zinc-200 group-hover:text-white">
+                          {source.title || "Untitled source"}
+                        </h3>
 
-                      <span className="shrink-0 text-sm text-gray-400">↗</span>
+                        <p className="mt-1 truncate text-xs text-zinc-600">
+                          {source.url}
+                        </p>
+                      </div>
+
+                      <span className="text-zinc-600 transition group-hover:text-white">
+                        ↗
+                      </span>
                     </div>
 
                     {source.snippet && (
-                      <p className="mt-2 text-sm leading-6 text-gray-600">
+                      <p className="mt-4 text-sm leading-6 text-zinc-500">
                         {source.snippet}
                       </p>
                     )}
 
                     {source.source_relationship && (
-                      <span
-                        className={`mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getRelationshipStyle(
-                          source.source_relationship,
-                        )}`}
-                      >
+                      <span className="mt-4 inline-flex rounded-full border border-zinc-700 px-3 py-1 text-xs font-medium text-zinc-400">
                         {formatRelationship(source.source_relationship)}
                       </span>
                     )}
 
                     {source.evidence && (
-                      <div className="mt-4 rounded-lg bg-gray-50 p-3">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
                           Evidence
                         </p>
 
-                        <p className="mt-1 text-sm leading-6 text-gray-700">
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">
                           {source.evidence}
                         </p>
                       </div>
                     )}
-
-                    <p className="mt-3 truncate text-xs text-gray-400">
-                      {source.url}
-                    </p>
                   </a>
                 ))}
               </div>
             </div>
-          </div>
+          </section>
         )}
       </div>
     </main>
