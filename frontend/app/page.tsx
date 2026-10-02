@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";    
 type Source = {
   id: number;
   title: string | null;
@@ -80,6 +80,15 @@ export default function Home() {
   const [result, setResult] = useState<FactCheckResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      router.replace("/login"); 
+    }
+  }, [router]);
 
   async function handleFactCheck() {
     if (!claim.trim()) {
@@ -109,6 +118,12 @@ export default function Home() {
           claim: claim.trim(),
         }),
       });
+
+      if (response.status === 401) {
+        localStorage.removeItem("access_token");
+        router.replace("/login");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Fact check failed.");

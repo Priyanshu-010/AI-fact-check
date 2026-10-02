@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Source = {
   id: number;
@@ -22,8 +23,15 @@ export default function HistoryPage() {
   const [factChecks, setFactChecks] = useState<FactCheck[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
     async function loadHistory() {
       const token = localStorage.getItem("access_token");
 
@@ -34,14 +42,17 @@ export default function HistoryPage() {
       }
 
       try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/fact-checks",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch("http://127.0.0.1:8000/fact-checks", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.status === 401) {
+          localStorage.removeItem("access_token");
+          router.replace("/login");
+          return;
+        }
 
         if (!response.ok) {
           throw new Error("Failed to load history.");
@@ -52,18 +63,18 @@ export default function HistoryPage() {
         setFactChecks(data);
       } catch (err) {
         setError("Could not load your fact-check history.");
-        console.log(err)
+        console.log(err);
       } finally {
         setLoading(false);
       }
     }
 
     loadHistory();
-  }, []);
+  }, [router]);
 
   async function handleDelete(factCheckId: number) {
     const confirmed = window.confirm(
-      "Are you sure you want to delete this fact check?"
+      "Are you sure you want to delete this fact check?",
     );
 
     if (!confirmed) {
@@ -85,23 +96,27 @@ export default function HistoryPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
+
+      if (response.status === 401) {
+        localStorage.removeItem("access_token");
+        router.replace("/login");
+        return;
+      }
 
       if (!response.ok) {
         throw new Error("Failed to delete fact check.");
       }
 
       setFactChecks((current) =>
-        current.filter(
-          (factCheck) => factCheck.id !== factCheckId
-        )
+        current.filter((factCheck) => factCheck.id !== factCheckId),
       );
     } catch (err) {
       setError("Could not delete the fact check.");
-      console.log(err)
+      console.log(err);
     }
-  } 
+  }
 
   if (loading) {
     return (
@@ -116,15 +131,9 @@ export default function HistoryPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-12">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-4xl font-bold">
-          Fact Check History
-        </h1>
+        <h1 className="text-4xl font-bold">Fact Check History</h1>
 
-        {error && (
-          <p className="mt-6 text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <p className="mt-6 text-red-600">{error}</p>}
 
         {!error && factChecks.length === 0 && (
           <p className="mt-6 text-gray-600">
@@ -138,25 +147,18 @@ export default function HistoryPage() {
               key={factCheck.id}
               className="rounded-2xl bg-white p-6 shadow-md"
             >
-              <p className="text-lg font-semibold">
-                {factCheck.claim}
-              </p>
+              <p className="text-lg font-semibold">{factCheck.claim}</p>
 
               <p className="mt-3">
-                <strong>Verdict:</strong>{" "}
-                {factCheck.verdict}
+                <strong>Verdict:</strong> {factCheck.verdict}
               </p>
 
-              <p className="mt-3 text-gray-700">
-                {factCheck.explanation}
-              </p>
+              <p className="mt-3 text-gray-700">{factCheck.explanation}</p>
 
               <p className="mt-4 text-sm text-gray-500">
-                {new Date(
-                  factCheck.created_at
-                ).toLocaleString()}
+                {new Date(factCheck.created_at).toLocaleString()}
               </p>
-              
+
               <button
                 type="button"
                 onClick={() => handleDelete(factCheck.id)}
@@ -164,9 +166,7 @@ export default function HistoryPage() {
               >
                 Delete
               </button>
-              <h3 className="mt-6 font-semibold">
-                Sources
-              </h3>
+              <h3 className="mt-6 font-semibold">Sources</h3>
 
               <div className="mt-3 space-y-3">
                 {factCheck.sources.map((source) => (
