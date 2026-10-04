@@ -107,6 +107,34 @@ async def get_fact_checks(
 
   return fact_checks
 
+@router.get(
+    "/{fact_check_id}",
+    response_model=FactCheckResponse,
+)
+async def get_fact_check(
+  fact_check_id: int,
+  user_id: int = Depends(get_current_user_id),
+  db: AsyncSession = Depends(get_db),
+):
+  result = await db.execute(
+    select(FactCheck)
+    .where(
+      FactCheck.id == fact_check_id,
+      FactCheck.user_id == user_id,
+    )
+    .options(selectinload(FactCheck.sources))
+  )
+
+  fact_check = result.scalar_one_or_none()
+
+  if fact_check is None:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="Fact check not found",
+    )
+
+  return fact_check
+
 
 @router.delete("/{fact_check_id}")
 async def delete_fact_check(
@@ -135,3 +163,4 @@ async def delete_fact_check(
   return {
     "message": "Fact check deleted successfully"
   }
+
