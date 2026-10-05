@@ -49,9 +49,7 @@ function formatVerdict(verdict: string | null) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function getRelationshipStyle(
-  relationship: string | null
-) {
+function getRelationshipStyle(relationship: string | null) {
   switch (relationship) {
     case "supports":
       return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
@@ -110,16 +108,19 @@ export default function Home() {
     setResult(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/fact-checks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/fact-checks`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            claim: claim.trim(),
+          }),
         },
-        body: JSON.stringify({
-          claim: claim.trim(),
-        }),
-      });
+      );
 
       if (response.status === 401) {
         localStorage.removeItem("access_token");
@@ -128,15 +129,22 @@ export default function Home() {
       }
 
       if (!response.ok) {
-        throw new Error("Fact check failed.");
+        const data = await response.json();
+
+        throw new Error(data.detail || "Fact check failed. Please try again.");
       }
 
       const data: FactCheckResult = await response.json();
 
       setResult(data);
     } catch (err) {
-      setError("Something went wrong while checking the claim.");
       console.log(err);
+
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Something went wrong while checking the claim.");
+      }
     } finally {
       setLoading(false);
     }

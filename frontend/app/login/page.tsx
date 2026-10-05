@@ -22,7 +22,7 @@ export default function LoginPage() {
       formData.append("username", email);
       formData.append("password", password);
 
-      const response = await fetch("http://127.0.0.1:8000/auth/login", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",

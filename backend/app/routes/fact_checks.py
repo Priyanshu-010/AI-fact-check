@@ -27,61 +27,71 @@ async def create_fact_check(
   user_id: int = Depends(get_current_user_id),
   db: AsyncSession = Depends(get_db),
 ):
-  # Run the AI fact-checking pipeline
-  result = await fact_check_claim(data.claim)
+  try:
+    # Run the AI fact-checking pipeline
+    result = await fact_check_claim(data.claim)
 
-  evidence_by_url = {
-    item["source_url"]: item
-    for item in result.get("evidence", [])
-  }
+    evidence_by_url = {
+      item["source_url"]: item
+      for item in result.get("evidence", [])
+    }
 
-  # Create the fact-check record
-  fact_check = FactCheck(
-    user_id=user_id,
-    claim=data.claim,
-    verdict=result["verdict"],
-    explanation=result["explanation"],
-  )
-
-  db.add(fact_check)
-
-  # We need the ID before creating Source records
-  await db.flush()
-
-  # Save the sources used by the AI
-  for source in result["sources"]:
-    evidence_item = evidence_by_url.get(source["url"])
-
-    db.add(
-      Source(
-        fact_check_id=fact_check.id,
-        title=source.get("title"),
-        url=source["url"],
-        snippet=source.get("content"),
-        evidence=(
-          evidence_item.get("evidence")
-          if evidence_item
-          else None
-        ),
-        source_relationship=(
-          evidence_item.get("relationship")
-          if evidence_item
-          else None
-        ),
-      )
+    # Create the fact-check record
+    fact_check = FactCheck(
+      user_id=user_id,
+      claim=data.claim,
+      verdict=result["verdict"],
+      explanation=result["explanation"],
     )
 
-  await db.commit()
+    db.add(fact_check)
 
-  result = await db.execute(
-    select(FactCheck)
-    .options(selectinload(FactCheck.sources))
-    .where(FactCheck.id == fact_check.id)
-  )
+    # Get the ID before creating Source records
+    await db.flush()
 
-  fact_check = result.scalar_one()
+    # Save the sources used by the AI
+    for source in result["sources"]:
+      evidence_item = evidence_by_url.get(source["url"])
 
-  return fact_check
+      db.add(
+        Source(
+          fact_check_id=fact_check.id,
+          title=source.get("title"),
+          url=source["url"],
+          snippet=source.get("content"),
+          evidence=(
+            evidence_item.get("evidence")
+            if evidence_item
+            else None
+          ),
+          source_relationship=(
+            evidence_item.get("relationship")
+            if evidence_item
+            else None
+          ),
+        )
+      )
+
+    await db.commit()
+
+    # Reload with sources
+    result = await db.execute(
+      select(FactCheck)
+      .options(selectinload(FactCheck.sources))
+      .where(FactCheck.id == fact_check.id)
+    )
+
+    fact_check = result.scalar_one()
+
+    return fact_check
+
+  except Exception:
+    await db.rollback()
+
+    raise HTTPException(
+      status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+      detail="Fact check could not be completed. Please try again.",
+    )
 
 # Get Fact Checks Endpoint
 from sqlalchemy.orm import selectinload  # <-- Add this import
