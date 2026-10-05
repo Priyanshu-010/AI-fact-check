@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/dist/client/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -128,6 +129,17 @@ export default function LoginPage() {
             </button>
           </div>
 
+          <div className="mt-6 border-t border-zinc-800 pt-6 text-center">
+            <p className="text-sm text-zinc-500">
+              Do not have an account?{" "}
+              <Link
+                href="/register"
+                className="font-medium text-white transition hover:text-zinc-300"
+              >
+                Create one
+              </Link>
+            </p>
+          </div>
           <div className="mt-6 border-t border-zinc-800 pt-6 text-center">
             <p className="text-xs leading-5 text-zinc-600">
               Your account gives you access to your personal fact-check history.
