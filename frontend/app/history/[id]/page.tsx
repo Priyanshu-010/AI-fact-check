@@ -112,7 +112,7 @@ export default function FactCheckDetailsPage() {
     async function loadFactCheck() {
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/fact-checks/${params.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/fact-checks/${params.id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

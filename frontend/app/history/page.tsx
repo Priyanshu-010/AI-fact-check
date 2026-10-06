@@ -148,7 +148,7 @@ export default function HistoryPage() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/fact-checks/${factCheckId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/fact-checks/${factCheckId}`,
         {
           method: "DELETE",
           headers: {
