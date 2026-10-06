@@ -11,7 +11,7 @@ app = FastAPI(title="FactCheck AI")
 
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:3000"], # Front-end URL
+  allow_origins=["https://ai-fact-check-92dv.vercel.app/"], # Front-end URL
   allow_credentials=False, # Cookie Authentication
   allow_methods=["*"], # Get, Post, Put, Delete
   allow_headers=["*"], # Headers
